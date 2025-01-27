@@ -22,8 +22,5 @@ COPY ./ /code/
 RUN pip install --no-cache-dir --upgrade . &&\
         rm -rf pyproject.toml src
 
-# Set the default port to 80, as that's the default HTTP port
-ENV PORT=80
-
 # Run our app by default
 CMD ["python", "-m", "app"]
