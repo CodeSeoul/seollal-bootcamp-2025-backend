@@ -15,4 +15,5 @@ services:
 
 networks:
   seollal-bootcamp-2025-backend:
+    name: seollal-bootcamp-2025-backend
     driver: bridge
