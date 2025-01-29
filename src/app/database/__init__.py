@@ -5,10 +5,12 @@ from sqlalchemy import (
     ColumnElement,
     CursorResult,
     Delete,
+    Insert,
     RowMapping,
     Select,
     Table,
     UnaryExpression,
+    Update,
     func,
     literal_column,
     select,
@@ -18,6 +20,10 @@ from sqlalchemy.sql.dml import ReturningInsert, ReturningUpdate
 
 
 class Repository(abc.ABC):
+    @abc.abstractmethod
+    async def commit(self):
+        raise NotImplementedError()
+
     @abc.abstractmethod
     async def insert(self, data: dict) -> RowMapping:
         raise NotImplementedError()
@@ -56,11 +62,18 @@ class SqlAlchemyRepository(Repository):
         self.db = db
         self.table = table
 
+    async def commit(self):
+        try:
+            await self.db.commit()
+        except Exception:
+            await self.db.rollback()
+
     async def insert(self, data: dict) -> RowMapping:
         # Use the table object to help identify the columns to be inserted
         # Dump our model to a dictionary for SQLAlchemy to map the attributes to columns
         # Then return all columns
         insert_statement: ReturningInsert[Tuple] = self.table.insert().values(data).returning(literal_column("*"))
+        self._get_compiled_query(insert_statement)
         # Run the insert. Don't forget to await!
         result_records: CursorResult = await self.db.execute(insert_statement)
         # mappings() to map the results back to a dictionary
@@ -74,15 +87,18 @@ class SqlAlchemyRepository(Repository):
         update_statement: ReturningUpdate[Tuple] = (
             self.table.update().where(self.table.c.id == id).values(data).returning(literal_column("*"))
         )
+        self._get_compiled_query(update_statement)
         result_records: CursorResult = await self.db.execute(update_statement)
         return result_records.mappings().first()
 
     async def delete(self, id: int) -> None:
         delete_statement: Delete = self.table.delete().where(self.table.c.id == id)
+        self._get_compiled_query(delete_statement)
         await self.db.execute(delete_statement)
 
     async def get_one(self, id: int) -> RowMapping | None:
         select_statement: Select = self.table.select().where(self.table.c.id == id)
+        self._get_compiled_query(select_statement)
         result_records: CursorResult = await self.db.execute(select_statement)
         return result_records.mappings().first()
 
@@ -99,6 +115,7 @@ class SqlAlchemyRepository(Repository):
         if ordering:
             select_statement = select_statement.order_by(*ordering)
         select_statement = select_statement.offset(offset).limit(size)
+        self._get_compiled_query(select_statement)
         result_records: CursorResult = await self.db.execute(select_statement)
         return result_records.mappings().all()
 
@@ -106,5 +123,10 @@ class SqlAlchemyRepository(Repository):
         count_select_statement: Select[Tuple[int]] = select(func.count()).select_from(
             select_statement.where(*filters).subquery()
         )
+        self._get_compiled_query(count_select_statement)
         result: CursorResult = await self.db.execute(count_select_statement)
         return result.scalar_one_or_none()
+
+    def _get_compiled_query(self, statement: Select | Insert | Update | Delete):
+        compiled_query = str(statement.compile(compile_kwargs={"literal_binds": True}))
+        print(compiled_query)

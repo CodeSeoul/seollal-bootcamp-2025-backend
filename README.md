@@ -6,7 +6,7 @@
 python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev]" # the command to install all of the dependencies
 pre-commit install
 ```
 
@@ -30,6 +30,15 @@ pre-commit install
 
 ```shell
 ruff check --fix .
+```
+
+## alembic
+```
+alembic revision -m "your migration name here"
+alembic upgrade head # migrate to latest migration
+alembic upgrade +1 # granular upgrade, upgrade by 1
+alembic downgrade -1  # downgrade by 1
+alembic downgrade base # downgrade to nothing
 ```
 
 ## Running

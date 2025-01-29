@@ -19,6 +19,7 @@ async def test_repository_insert(test_conn: AsyncConnection, product_data: dict)
 
     # WHEN
     await repository.insert(data=product_data)
+    await repository.commit()
 
     # THEN
     query: Select = product_table.select()
@@ -44,6 +45,7 @@ async def test_repository_update(
         "price": int(product.price * Decimal(0.9)),
     }
     await repository.update(id=product.id, data=update_req)
+    await repository.commit()
 
     # THEN
     query: Select = product_table.select().where(product_table.c.id == product.id)
@@ -64,6 +66,7 @@ async def test_repository_delete(
 
     # WHEN
     await repository.delete(product.id)
+    await repository.commit()
 
     # THEN
     query: Select = product_table.select().where(product_table.c.id == product.id)
@@ -100,6 +103,7 @@ async def test_paginate(product_repository: SqlAlchemyRepository):
         }
         res = await product_repository.insert(test_product)
         products.append(Product(**res))
+    product_repository.commit()
 
     # WHEN
     query: Select = product_table.select()
