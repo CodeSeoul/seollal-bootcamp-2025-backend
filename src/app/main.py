@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.routes.metrics import router as metrics_router
+from app.routes.order import router as order_router
 from app.routes.product import router as product_router
 from app.settings import Settings
 
@@ -15,6 +16,7 @@ app = FastAPI()
 # logic. Note that we can define a prefix and organize routers by
 # prefix. This allows you to logically split your application logic.
 app.include_router(product_router, prefix="/products")
+app.include_router(order_router, prefix="/orders")
 app.include_router(metrics_router, prefix="/metrics")
 
 Instrumentator().instrument(app).expose(app)
@@ -31,4 +33,3 @@ def main():
         port=settings.port,
         log_level="debug",
     )
-
