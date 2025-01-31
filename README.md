@@ -71,7 +71,7 @@ docker compose up -d
 docker run --name backend-server --rm \
     --network seollal-bootcamp-2025-backend_default \
     --env DB_HOST=database \
-    --publish 8080:80 \
+    --publish 8000:8000 \
     seollal-bootcamp
 ```
 
