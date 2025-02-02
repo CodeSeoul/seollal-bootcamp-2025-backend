@@ -12,6 +12,8 @@ services:
       - type: volume
         source: data
         target: /var/lib/postgresql/data
+    networks:
+      - seollal-bootcamp-2025-backend_default
 
   db_ui:
     image: shyim/adminerevo
@@ -25,6 +27,13 @@ services:
       ADMINER_DEFAULT_USER: root
       ADMINER_DEFAULT_PASSWORD: root
       ADMINER_DESIGN: dracula
+    networks:
+      - seollal-bootcamp-2025-backend_default
+
 
 volumes:
   data:
+networks:
+  seollal-bootcamp-2025-backend_default:
+    driver: bridge
+    name: seollal-bootcamp-2025-backend_default

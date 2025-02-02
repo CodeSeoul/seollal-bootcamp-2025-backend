@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, field_serializer
 
 from app.models.product import Product
 from app.schemas.base import BaseListResponse
@@ -12,6 +12,10 @@ class ProductCreateRequest(BaseModel):
     image: HttpUrl | None = None
     price: Decimal = Field(max_digits=12, decimal_places=2)
     stock: int | None = 0
+
+    @field_serializer("image")
+    def validate_image(self, image: HttpUrl, _info):
+        return str(image)
 
 
 class ProductCreateResponse(Product):
